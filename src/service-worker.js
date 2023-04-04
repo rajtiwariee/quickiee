@@ -20,7 +20,7 @@ const urlsToCache = [
 ];
 
 // Install the service worker
-self.addEventListener("install", (event) => {
+this.addEventListener("install", (event) => {
   console.log("Service worker installed");
 
   event.waitUntil(
@@ -32,7 +32,7 @@ self.addEventListener("install", (event) => {
 });
 
 // Activate the service worker
-self.addEventListener("activate", (event) => {
+this.addEventListener("activate", (event) => {
   console.log("Service worker activated");
 
   event.waitUntil(
@@ -49,7 +49,7 @@ self.addEventListener("activate", (event) => {
 });
 
 // Fetch the cached files
-self.addEventListener("fetch", (event) => {
+this.addEventListener("fetch", (event) => {
   console.log("Fetching:", event.request.url);
 
   event.respondWith(
