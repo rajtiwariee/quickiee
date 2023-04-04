@@ -1,52 +1,66 @@
-// Define the cache name and URLs to cache
-const CACHE_NAME = "ecommerce-pwa-cache-v1";
-const URLS_TO_CACHE = [
+// Define the cache name
+const CACHE_NAME = "my-ecommerce-pwa-cache-v1";
+
+// Define the files to cache
+const urlsToCache = [
   "/",
   "/index.html",
+  "/manifest.json",
   "/css/style.css",
   "/js/main.js",
   "/images/logo.png",
-  "/images/products/product1.jpg",
-  "/images/products/product2.jpg",
-  "/images/products/product3.jpg",
+  "/images/icons/icon-72x72.png",
+  "/images/icons/icon-96x96.png",
+  "/images/icons/icon-128x128.png",
+  "/images/icons/icon-144x144.png",
+  "/images/icons/icon-152x152.png",
+  "/images/icons/icon-192x192.png",
+  "/images/icons/icon-384x384.png",
+  "/images/icons/icon-512x512.png",
 ];
 
-// Install the service worker and cache the app shell
+// Install the service worker
 self.addEventListener("install", (event) => {
+  console.log("Service worker installed");
+
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("Opened cache");
-      return cache.addAll(URLS_TO_CACHE);
+      console.log("Cache opened");
+      return cache.addAll(urlsToCache);
     })
   );
 });
 
-// Serve the app shell from the cache if available
-self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) {
-        console.log("Found in cache", event.request.url);
-        return response;
-      }
-      console.log("Not found in cache", event.request.url);
-      return fetch(event.request);
-    })
-  );
-});
-
-// Update the service worker and delete old caches
+// Activate the service worker
 self.addEventListener("activate", (event) => {
+  console.log("Service worker activated");
+
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log("Deleting old cache", cacheName);
             return caches.delete(cacheName);
           }
         })
       );
+    })
+  );
+});
+
+// Fetch the cached files
+self.addEventListener("fetch", (event) => {
+  console.log("Fetching:", event.request.url);
+
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      if (response) {
+        console.log("Cache hit:", event.request.url);
+        return response;
+      }
+
+      console.log("Cache miss:", event.request.url);
+      return fetch(event.request);
     })
   );
 });
