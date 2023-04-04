@@ -1,37 +1,42 @@
-// Check if the browser supports service workers
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    // Register the service worker
-    navigator.serviceWorker
-      .register("/service-worker.js")
-      .then((registration) => {
-        console.log("Service worker registered:", registration);
+import { precacheAndRoute } from "workbox-precaching/precacheAndRoute";
 
-        // Check if there is an existing service worker
-        if (registration.active) {
-          console.log("Existing service worker detected");
+precacheAndRoute(self.__WB_MANIFEST);
 
-          // Refresh the page to activate the new service worker
-          window.location.reload();
-        }
+if (workbox) {
+  console.log(`Workbox is loaded`);
 
-        // Listen for updates to the service worker
-        registration.addEventListener("updatefound", () => {
-          console.log("New service worker found");
+  // Precache all assets
+  workbox.precaching.precacheAndRoute(self.__WB_MANIFEST);
 
-          // Wait for the new service worker to be installed
-          const installingWorker = registration.installing;
-          installingWorker.addEventListener("statechange", () => {
-            // If the new service worker is activated, refresh the page
-            if (installingWorker.state === "activated") {
-              console.log("New service worker activated");
-              window.location.reload();
-            }
-          });
-        });
-      })
-      .catch((error) => {
-        console.error("Service worker registration failed:", error);
-      });
+  // Serve the precached assets first
+  workbox.routing.setDefaultHandler(
+    new workbox.strategies.CacheFirst({
+      cacheName: "assets-cache",
+    })
+  );
+
+  // Serve the API requests with a network-first strategy
+  workbox.routing.registerRoute(
+    new RegExp("https://example.com/api/.*"),
+    new workbox.strategies.NetworkFirst({
+      cacheName: "api-cache",
+    })
+  );
+
+  // Serve the pages with a network-first strategy
+  workbox.routing.registerRoute(
+    new RegExp("https://example.com/.*"),
+    new workbox.strategies.NetworkFirst({
+      cacheName: "pages-cache",
+    })
+  );
+
+  // Listen for updates to the service worker
+  self.addEventListener("install", (event) => {
+    event.waitUntil(self.skipWaiting());
+  });
+
+  self.addEventListener("activate", (event) => {
+    event.waitUntil(self.clients.claim());
   });
 }
